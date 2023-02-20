@@ -1,20 +1,26 @@
-name: Deploy frontend application
+name: Deploy backend to host
 'on':
   push:
     branches:
       - main
-
 jobs:
-  docker:
+  docker: 
     runs-on: ubuntu-latest
     steps:
       - 
         name: Checkout
         uses: actions/checkout@v3
-      - name: Clear caches
-        uses: easimon/wipe-cache@main
+      -
+        name: setup java
+        uses: actions/setup-java@v3
         with:
-          dry-run: 'true'
+          java-version: '16'
+          distribution: 'adopt'
+      -
+        name: run maven
+        run: |
+                mvn clean install -DskipTests -B
+                mkdir -p target/dependency && (cd target/dependency; unzip ../*.jar)
       - 
         name: Set up QEMU
         uses: docker/setup-qemu-action@v2
@@ -37,13 +43,13 @@ jobs:
         with:
           context: .
           push: true
-          tags: hakush1n/234-deploylab-frontend:latest
+          tags: hakush1n/234-deploylab-backend:latest
       -
         name: Prepare docker-compose run
         run: |
-              mkdir 234-deploylab-frontend
-              cp docker-compose.yml 234-deploylab-frontend/docker-compose.yml
-              cd 234-deploylab-frontend
-              docker-compose -H ${{ secrets.HOST_SERVER }} down
+              mkdir 234-deploylab-backend
+              cp docker-compose.yml 234-deploylab-backend/docker-compose.yml
+              cd 234-deploylab-backend
+              docker-compose -H ${{ secrets.HOST_SERVER }} down -remove-orphans
               docker-compose -H ${{ secrets.HOST_SERVER }} pull
               docker-compose -H ${{ secrets.HOST_SERVER }} up -d
