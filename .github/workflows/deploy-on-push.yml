@@ -11,6 +11,10 @@ jobs:
       - 
         name: Checkout
         uses: actions/checkout@v3
+      - name: Clear caches
+        uses: easimon/wipe-cache@main
+        with:
+          dry-run: 'true'
       - 
         name: Set up QEMU
         uses: docker/setup-qemu-action@v2
